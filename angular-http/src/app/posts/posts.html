@@ -91,4 +91,32 @@
     }
 
   </div>
+
+  <div class="mb-3">
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary me-2"
+    (click)="caricaPagina(pagina() - 1)"
+    [disabled]="pagina() === 1 || loading()">
+
+    Precedente
+
+  </button>
+
+  <span class="mx-2">
+    Pagina {{ pagina() }} di 10
+  </span>
+
+  <button
+    type="button"
+    class="btn btn-outline-secondary ms-2"
+    (click)="caricaPagina(pagina() + 1)"
+    [disabled]="pagina() === 10 || loading()">
+
+    Successiva
+
+  </button>
+
+</div>
 }
