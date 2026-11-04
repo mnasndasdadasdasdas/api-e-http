@@ -1,9 +1,85 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
+import { JsonPipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+
+import { Post } from '../modelli/post';
+import { PostService } from '../services/post-service';
 
 @Component({
-  imports: [],
   selector: 'app-posts',
-  styleUrl: './posts.css',
+  imports: [JsonPipe],
   templateUrl: './posts.html',
+  styleUrl: './posts.css'
 })
-export class Posts {}
+export class Posts {
+
+  private readonly postService = inject(PostService);
+
+  readonly post = signal<Post | null>(null);
+  readonly posts = signal<Post[]>([]);
+  readonly loading = signal(false);
+  readonly errore = signal<string | null>(null);
+
+  // CARICA UN SINGOLO POST
+  caricaUno(numero: string): void {
+    this.inizia();
+
+    this.postService.getPost(Number(numero)).subscribe({
+      next: (dato) => {
+        this.post.set(dato);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.gestisciErrore(err);
+      }
+    });
+  }
+
+  // CARICA TUTTI I POST
+  caricaTutti(): void {
+    this.inizia();
+
+    this.postService.getPosts().subscribe({
+      next: (dati) => {
+        this.posts.set(dati);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.gestisciErrore(err);
+      }
+    });
+  }
+
+  // INVIA UN NUOVO POST
+  invia(): void {
+    this.inizia();
+
+    const nuovo = {
+      userId: 1,
+      title: 'Primo post da Angular',
+      body: 'Inviato con HttpClient'
+    };
+
+    this.postService.addPost(nuovo).subscribe({
+      next: (risposta) => {
+        this.post.set(risposta);
+        this.loading.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.gestisciErrore(err);
+      }
+    });
+  }
+
+  // INIZIA IL CARICAMENTO
+  private inizia(): void {
+    this.loading.set(true);
+    this.errore.set(null);
+  }
+
+  // GESTISCE GLI ERRORI
+  private gestisciErrore(err: HttpErrorResponse): void {
+    this.errore.set(`Errore ${err.status}: ${err.message}`);
+    this.loading.set(false);
+  }
+}
